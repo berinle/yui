@@ -9,9 +9,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Order;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import net.berinle.yuitour.HibernateSessionFactory;
 import net.berinle.yuitour.Person;
 import net.berinle.yuitour.Warehouse;
 
@@ -21,7 +25,51 @@ public class FeederServlet extends HttpServlet {
 			throws ServletException, IOException {
 		System.out.println("starting service...");
 		Warehouse wh = new Warehouse();
-		List<Person> persons = wh.getPersons();
+		//List<Person> persons = wh.getPersons();
+		
+		Session s = HibernateSessionFactory.getSession();
+		
+		String sortBy = request.getParameter("sort");
+		String sortOrder = request.getParameter("dir");
+		
+		boolean asc = true;
+		int startFrom = Integer.parseInt(request.getParameter("startIndex"));
+		int pagesize = Integer.parseInt(request.getParameter("results"));
+		
+		Criteria crit = s.createCriteria(Person.class)
+		.setFirstResult(startFrom)
+		.setFetchSize(pagesize);
+		
+		if(!sortOrder.equals("asc"))
+			asc = false;
+			
+		
+		if(asc){
+			if(sortBy.equals("firstName")){
+				crit.addOrder(Order.asc("firstName"));
+			} else if(sortBy.equals("lastName")){
+				crit.addOrder(Order.asc("lastName"));
+			} else if(sortBy.equals("ssn")){
+				crit.addOrder(Order.asc("ssn"));
+			}
+		} else{//descending
+			if(sortBy.equals("firstName")){
+				crit.addOrder(Order.desc("firstName"));
+			} else if(sortBy.equals("lastName")){
+				crit.addOrder(Order.desc("lastName"));
+			} else if(sortBy.equals("ssn")){
+				crit.addOrder(Order.desc("ssn"));
+			}
+		}
+		
+		List<Person> persons = crit.list();
+		
+		s.createQuery("from Person")		
+		//.setMaxResults(Integer.parseInt(request.getParameter("results")))
+		.setFirstResult(Integer.parseInt(request.getParameter("startIndex")))
+		.setFetchSize(Integer.parseInt(request.getParameter("results")))
+		.list();
+	    
 		
 		Enumeration en = request.getParameterNames();
 		while(en.hasMoreElements()){
