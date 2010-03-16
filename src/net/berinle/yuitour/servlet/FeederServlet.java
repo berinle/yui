@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Order;
@@ -21,9 +22,10 @@ import net.berinle.yuitour.Warehouse;
 
 public class FeederServlet extends HttpServlet {
 
+	private static Logger log = Logger.getLogger(FeederServlet.class);
 	protected void service(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		System.out.println("starting service...");
+		log.debug("starting service...");
 		Warehouse wh = new Warehouse();
 		//List<Person> persons = wh.getPersons();
 		
@@ -51,6 +53,8 @@ public class FeederServlet extends HttpServlet {
 				crit.addOrder(Order.asc("lastName"));
 			} else if(sortBy.equals("ssn")){
 				crit.addOrder(Order.asc("ssn"));
+			} else if(sortBy.equals("email")){
+				crit.addOrder(Order.asc("email"));
 			}
 		} else{//descending
 			if(sortBy.equals("firstName")){
@@ -59,16 +63,22 @@ public class FeederServlet extends HttpServlet {
 				crit.addOrder(Order.desc("lastName"));
 			} else if(sortBy.equals("ssn")){
 				crit.addOrder(Order.desc("ssn"));
+			} else if(sortBy.equals("email")){
+				crit.addOrder(Order.desc("email"));
 			}
 		}
 		
-		List<Person> persons = crit.list();
+		List<Person> persons = crit.setFirstResult(Integer.parseInt(request.getParameter("startIndex")))
+		.setFetchSize(Integer.parseInt(request.getParameter("results")))
+		.list();
 		
-		s.createQuery("from Person")		
+		//List<Person> persons = crit.list();
+		
+		/*s.createQuery("from Person")		
 		//.setMaxResults(Integer.parseInt(request.getParameter("results")))
 		.setFirstResult(Integer.parseInt(request.getParameter("startIndex")))
 		.setFetchSize(Integer.parseInt(request.getParameter("results")))
-		.list();
+		.list();*/
 	    
 		
 		Enumeration en = request.getParameterNames();
@@ -92,6 +102,7 @@ public class FeederServlet extends HttpServlet {
 			jsonPerson.put("firstName", p.getFirstName());
 			jsonPerson.put("lastName", p.getLastName());
 			jsonPerson.put("ssn", p.getSsn());
+			jsonPerson.put("email", p.getEmail());
 			
 			list.add(jsonPerson);
 		}
@@ -99,8 +110,12 @@ public class FeederServlet extends HttpServlet {
 		obj.put("records", list);
 		
 		response.getWriter().write(obj.toJSONString());
-		System.out.println("ending service...");
+		log.debug("ending service...");
+		
+		HibernateSessionFactory.closeSession();
 	}
+	
+	
 
 }
 /*

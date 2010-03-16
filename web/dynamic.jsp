@@ -41,7 +41,8 @@
 	    var myColumnDefs = [ // sortable:true enables sorting
 	        {key:"firstName", label:"Firstname", sortable:true},
 	        {key:"lastName", label:"Lastname", sortable:true},
-	        {key:"ssn", label:"Social Security No.", sortable:true}	        
+	        {key:"ssn", label:"Social Security No.", sortable:true},
+	        {key:"email", label:"Email", sortable:true}
 	    ];
 	
 	    // DataSource instance
@@ -58,7 +59,8 @@
 	        fields: [
 	            {key:"firstName"},
 	            {key:"lastName"},
-	            {key:"ssn"}
+	            {key:"ssn"},
+	            {key:"email"}
 	        ],
 	        metaFields: {
 	            totalRecords: "totalRecords" // Access to value in the server response
